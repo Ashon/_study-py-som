@@ -103,7 +103,7 @@ class Som(FeatureMap):
         for unit in self.units:
             activate = math.exp(-bmu.get_squared_distance(unit) / gain) * self._learning_rate
             if activate > self._learn_threshold:
-                np.add(unit.weights, np.multiply(
+                unit.weights = np.add(unit.weights, np.multiply(
                         np.subtract(feature_vector.weights, unit.weights), activate
                     )
                 )
