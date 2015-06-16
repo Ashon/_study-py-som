@@ -3,14 +3,14 @@ import time
 
 from som import Som
 from som import FeatureMap
-
+import som_util
 
 def main():
 
     som_info = {
         'width': 20,
         'height': 20,
-        'dimension': 5,
+        'dimension': 10000,
         'randomize': True,
         'gain': 30,
         'max_iteration': 30,
@@ -20,7 +20,7 @@ def main():
     ])
     som = Som(**som_info)
 
-    sample_length = 1000
+    sample_length = 50
     print 'Initialize Samples [sample_length=%s]' % sample_length
     sample_map = FeatureMap(
         width=sample_length, height=1,
@@ -39,29 +39,18 @@ def main():
 
         total_time += train_execution_time
 
-        # bmu_idx_list = [som.get_bmu_index(unit) for unit in sample_map.map]
+        bmu_idx_list = [som.get_bmu_coord(unit) for unit in sample_map.map]
 
-        print 'Train [progress={progress:.3f} %],[exec_time={exec_time:.3f} sec]'.format(
+        print '\nTrain Result [progress={progress:.3f} %] [exec_time={exec_time:.3f} sec]'.format(
             progress=som.get_progress() * 100, exec_time=train_execution_time)
 
-        # for i in range(sample_length):
-            # sample_weights = ', '.join([
-            #     '{sample:.3f}'.format(sample=sample)
-            #     for sample in sample_map.units[i].weights
-            # ])
+        print 'Sample idx |', ' | '.join(['{sid:3d}'.format(sid=i) for i in range(sample_length)])
+        print 'BMU idx    |', ' | '.join(['{bid}'.format(bid=bid) for bid in bmu_idx_list])
 
-            # bmu_weights = ', '.join([
-            #     '{sample:.3f}'.format(sample=sample)
-            #     for sample in som.units[bmu_idx_list[i]].weights
-            # ])
-
-            # print '[Sample={sample_index:2d}] => [BMU={bmu:4d}][similarity={bmu_sim:.3f}]'.format(
-            #     sample_index=i, bmu=bmu_idx_list[i],
-            #     bmu_sim=som.units[bmu_idx_list[i]].get_euclidean_similarity(sample_map.units[i]))
-
-    print 'Total Exec[{exec_total:.3f} sec], Iteration[{iteration}], AVG[{exec_avg:.3f} sec]'.format(
-        exec_total=total_time, exec_avg=total_time / som.get_iteration_count(),
-        iteration=som.get_iteration_count())
+    print 'Train Complete.'
+    print 'Total Exec [{exec_total:.3f} sec]'.format(exec_total=total_time)
+    print 'Iteration Count [{iteration}]'.format(iteration=som.get_iteration_count())
+    print 'Exec AVG [{exec_avg:.3f} sec]'.format(exec_avg=total_time / som.get_iteration_count())
 
     # for unit in som.units:
     #     print unit, '\t'.join(['{sample:.7f}'.format(sample=sample) for sample in unit.weights])
