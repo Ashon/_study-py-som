@@ -20,7 +20,7 @@ def main():
     ])
     som = Som(**som_info)
 
-    sample_length = 10000
+    sample_length = 1000
     print 'Initialize Samples [sample_length=%s]' % sample_length
     sample_map = FeatureMap(
         width=sample_length, height=1,
