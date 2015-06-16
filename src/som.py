@@ -111,7 +111,6 @@ class Som(FeatureMap):
 
         gain = self._gain * (1 - self.get_progress())
         gain = gain * gain
-
         coord_matrix = np.array([
             [x, y] for y in range(self._height) for x in range(self._width)
         ]).reshape(self._height, self._width, 2)
@@ -119,20 +118,16 @@ class Som(FeatureMap):
         distance_matrix = np.subtract(coord_matrix, bmu_coord)
         squared_dist_matrix = np.multiply(distance_matrix, -distance_matrix).sum(axis=2)
 
-        activation_matrix = np.multiply(
-            np.exp(
-                np.divide(squared_dist_matrix, gain)
-            ),
-            self._learning_rate
-        )
+        activation_matrix = np.exp(np.divide(squared_dist_matrix, gain))
+        # , self._learning_rate)
+        # import pudb; pudb.set_trace()
 
-        self.map = np.add(
-            self.map,
-            np.multiply(
-                -np.subtract(self.map, feature_vector),
-                activation_matrix
-            )
-        )
+        for x in range(self._width):
+            for y in range(self._height):
+                target = self.map[x][y]
+                feature_error_matrix = np.subtract(feature_vector, target)
+                target = np.add(
+                    target, np.multiply(feature_error_matrix, activation_matrix[x][y]))
 
     def train_feature_map(self, feature_map):
         for sample_unit in feature_map.map:
