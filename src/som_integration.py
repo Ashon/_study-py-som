@@ -20,7 +20,7 @@ def main():
     ])
     som = Som(**som_info)
 
-    sample_length = 1000
+    sample_length = 10000
     print 'Initialize Samples [sample_length=%s]' % sample_length
     sample_map = FeatureMap(
         width=sample_length, height=1,
@@ -39,7 +39,7 @@ def main():
 
         total_time += train_execution_time
 
-        bmu_idx_list = [som.get_bmu_index(unit) for unit in sample_map.units]
+        # bmu_idx_list = [som.get_bmu_index(unit) for unit in sample_map.map]
 
         print 'Train [progress={progress:.3f} %],[exec_time={exec_time:.3f} sec]'.format(
             progress=som.get_progress() * 100, exec_time=train_execution_time)
