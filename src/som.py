@@ -1,4 +1,5 @@
 
+import numpy as np
 import math
 
 import som_util
@@ -13,11 +14,11 @@ class FeatureVector(point_2d.Point2D):
         super(FeatureVector, self).__init__(x, y)
 
         if randomize:
-            self.weights = [som_util.get_random(
+            self.weights = np.array([som_util.get_random(
                 min_value=WEIGHT_VALUE_RANGE.min,
-                max_value=WEIGHT_VALUE_RANGE.max) for _ in range(dimension)]
+                max_value=WEIGHT_VALUE_RANGE.max) for _ in range(dimension)])
         else:
-            self.weights = [0.0] * dimension
+            self.weights = np.array([0.0] * dimension)
         self.get_dimension = self.weights.__len__
 
 
@@ -40,7 +41,6 @@ class FeatureMap(object):
     def get_bmu_index(self, feature_vector):
         ''' returns best matching unit's index '''
         feature_errors = [som_util.get_squared_error(unit, feature_vector) for unit in self.units]
-
         return feature_errors.index(min(feature_errors))
 
 
@@ -103,10 +103,10 @@ class Som(FeatureMap):
         for unit in self.units:
             activate = math.exp(-bmu.get_squared_distance(unit) / gain) * self._learning_rate
             if activate > self._learn_threshold:
-                unit.weights = [
-                    unit.weights[i] + (feature_vector.weights[i] - unit.weights[i]) * activate
-                    for i in range(self._dimension)
-                ]
+                np.add(unit.weights, np.multiply(
+                        np.subtract(feature_vector.weights, unit.weights), activate
+                    )
+                )
 
     def train_feature_map(self, feature_map):
         for sample_unit in feature_map.units:
