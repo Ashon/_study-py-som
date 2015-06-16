@@ -1,5 +1,6 @@
 
 import math
+import numpy as np
 from collections import namedtuple
 from numpy.random import random
 
@@ -15,18 +16,14 @@ def clamp(value, min_value, max_value):
 def get_squared_error(feature_vector_a, feature_vector_b):
     ''' returns squared euclidean distance '''
 
-    weight_length = feature_vector_a.get_dimension()
-    error_list = [
-        feature_vector_a.weights[i] - feature_vector_b.weights[i]
-        for i in range(weight_length)
-    ]
-    squared_error = sum([error * error for error in error_list])
+    error_list = np.subtract(feature_vector_a.weights, feature_vector_b.weights)
+    squared_error = np.sum(np.multiply(error_list, error_list))
 
-    return float(squared_error)
+    return squared_error
 
 def get_euclidean_similarity(feature_vector_a, feature_vector_b):
     ''' returns euclidean similarity '''
-    squared_error = feature_vector_a.get_squared_error(feature_vector_b)
+    squared_error = get_squared_error(feature_vector_a, feature_vector_b)
     distance = math.sqrt(squared_error)
 
     return 1.0 / (1.0 + distance)
@@ -34,10 +31,9 @@ def get_euclidean_similarity(feature_vector_a, feature_vector_b):
 def inner_prod(feature_vector_a, feature_vector_b):
     dimension = feature_vector_a.get_dimension()
 
-    prod = sum([
-        feature_vector_a.weights[i] * feature_vector_b.weights[i]
-        for i in range(dimension)
-    ])
+    prod = np.sum(
+        np.multiply(feature_vector_a.weights, feature_vector_b.weights)
+    )
 
     return prod
 
@@ -58,6 +54,10 @@ def get_cosine_similarity(feature_vector_a, feature_vector_b):
 
 def get_norm(feature_vector):
     ''' returns feature_vector's norm value '''
-    norm = math.sqrt(sum([weight * weight for weight in feature_vector.weights]))
+    norm = math.sqrt(
+        np.sum(
+            np.multiply(feature_vector.weights, feature_vector.weights)
+        )
+    )
 
     return norm
