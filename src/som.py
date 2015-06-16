@@ -14,12 +14,12 @@ class FeatureVector(point_2d.Point2D):
         super(FeatureVector, self).__init__(x, y)
 
         if randomize:
-            self.weights = np.array([som_util.get_random(
-                min_value=WEIGHT_VALUE_RANGE.min,
-                max_value=WEIGHT_VALUE_RANGE.max) for _ in range(dimension)])
+            fill_method = np.random.rand
         else:
-            self.weights = np.array([0.0] * dimension)
-        self.get_dimension = self.weights.__len__
+            fill_method = np.zeros
+
+        self.weights = fill_method(dimension)
+        self.dimension = dimension
 
 
 class FeatureMap(object):
@@ -30,9 +30,8 @@ class FeatureMap(object):
             FeatureVector(x=x, y=y, randomize=randomize, dimension=dimension)
             for x in range(width) for y in range(height)
         ]
-        self.get_scale = self.units.__len__
 
-        self._dimension = dimension
+        self.dimension = dimension
 
     def get_bmu(self, feature_vector):
         ''' returns best matching unit '''
@@ -60,8 +59,6 @@ class Som(FeatureMap):
         self._gain = gain
         self._iteration = 0
         self._max_iteration_count = int(max_iteration)
-
-        self._dimension = dimension
 
     def _set_learn_threshold(self):
         self._learn_threshold = self._threshold * self._learning_rate
