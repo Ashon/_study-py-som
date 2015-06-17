@@ -8,19 +8,19 @@ import som_util
 def main():
 
     som_info = {
-        'width': 20,
-        'height': 20,
+        'width': 100,
+        'height': 100,
         'dimension': 10000,
         'randomize': True,
-        'gain': 30,
-        'max_iteration': 30,
+        'gain': 10,
+        'max_iteration': 100,
     }
     print 'Initialize SOM => %s' % ''.join([
         '[%s=%s]' % (key, som_info[key]) for key in som_info.keys()
     ])
     som = Som(**som_info)
 
-    sample_length = 50
+    sample_length = 100
     print 'Initialize Samples [sample_length=%s]' % sample_length
     sample_map = FeatureMap(
         width=sample_length, height=1,
@@ -39,13 +39,13 @@ def main():
 
         total_time += train_execution_time
 
-        bmu_idx_list = [som.get_bmu_coord(unit) for unit in sample_map.map]
+        # bmu_idx_list = [som.get_bmu_coord(unit) for unit in sample_map.map]
 
-        print '\nTrain Result [progress={progress:.3f} %] [exec_time={exec_time:.3f} sec]'.format(
+        print 'Train Result [progress={progress:.3f} %] [exec_time={exec_time:.3f} sec]'.format(
             progress=som.get_progress() * 100, exec_time=train_execution_time)
 
-        print 'Sample idx |', ' | '.join(['{sid:3d}'.format(sid=i) for i in range(sample_length)])
-        print 'BMU idx    |', ' | '.join(['{bid}'.format(bid=bid) for bid in bmu_idx_list])
+        # print 'Sample idx |', ' | '.join(['{sid:3d}'.format(sid=i) for i in range(sample_length)])
+        # print 'BMU idx    |', ' | '.join(['{bid}'.format(bid=(str(bid[0]) + '-' + str(bid[1]))) for bid in bmu_idx_list])
 
     print 'Train Complete.'
     print 'Total Exec [{exec_total:.3f} sec]'.format(exec_total=total_time)

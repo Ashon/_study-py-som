@@ -1,26 +1,12 @@
 
 
 import numpy as np
-import math
 
 import som_util
-import point_2d
 
+import sys
 
 WEIGHT_VALUE_RANGE = som_util.ValueRange(min=0, max=1)
-
-class FeatureVector(point_2d.Point2D):
-
-    def __init__(self, x=0, y=0, dimension=0, randomize=False):
-        super(FeatureVector, self).__init__(x, y)
-
-        if randomize:
-            fill_method = np.random.rand
-        else:
-            fill_method = np.zeros
-
-        self.weights = fill_method(dimension)
-        self.dimension = dimension
 
 class FeatureMap(object):
 
@@ -39,16 +25,19 @@ class FeatureMap(object):
 
     def get_bmu_coord(self, feature_vector):
         ''' returns best matching unit's coord '''
-        error_list = np.array([
-            [x, y, som_util.get_squared_error(self.map[x][y], feature_vector)]
-            for y in range(self._height) for x in range(self._width)
-        ])
+        error_list = np.subtract(self.map, feature_vector)
+        squared_error_list = np.multiply(error_list, error_list)
+        sum_squared_error_list = np.sum(squared_error_list, axis=2)
+        min_error = np.amin(sum_squared_error_list)
+        min_error_address = np.where(sum_squared_error_list == min_error)
 
-        minimum_error = np.max(np.min(error_list, axis=0))
-        min_err_item = error_list[np.where(error_list == minimum_error)[0]]
+        # print '\nerror_list =>\n', error_list
+        # print '\nsqaured_error_list =>\n', squared_error_list
+        # print '\nsum_squared_error_list =>\n', sum_squared_error_list
+        # print '\nmin_error =>\n', min_error
+        # print '\nmin_error_address =>\n', min_error_address
 
-        bmu_coord = np.array([min_err_item[0][0], min_err_item[0][1]])
-        return bmu_coord
+        return [min_error_address[0][0], min_error_address[1][0]]
 
     def get_bmu(self, feature_vector):
         ''' returns bmu '''
@@ -107,28 +96,35 @@ class Som(FeatureMap):
         return float(self._iteration) / self._max_iteration_count
 
     def train_feature_vector(self, feature_vector):
-        bmu_coord = self.get_bmu_coord(feature_vector)
+
+        bmu_coord = np.array(self.get_bmu_coord(feature_vector))
 
         gain = self._gain * (1 - self.get_progress())
         gain = gain * gain
         coord_matrix = np.array([
-            [x, y] for y in range(self._height) for x in range(self._width)
-        ]).reshape(self._height, self._width, 2)
+            [x, y] for x in range(self._width) for y in range(self._height)
+        ]).reshape(self._width, self._height, 2)
 
         distance_matrix = np.subtract(coord_matrix, bmu_coord)
         squared_dist_matrix = np.multiply(distance_matrix, -distance_matrix).sum(axis=2)
 
         activation_matrix = np.exp(np.divide(squared_dist_matrix, gain))
-        # , self._learning_rate)
-        # import pudb; pudb.set_trace()
+        # print '\nactivation_matrix =>\n', activation_matrix
 
+        # sys.stdout.write('bmu_coord => \n%s\n' % bmu_coord)
         for x in range(self._width):
             for y in range(self._height):
-                target = self.map[x][y]
-                feature_error_matrix = np.subtract(feature_vector, target)
-                target = np.add(
-                    target, np.multiply(feature_error_matrix, activation_matrix[x][y]))
+                if activation_matrix[x][y] > self._learn_threshold:
+                    feature_error_matrix = np.subtract(feature_vector, self.map[x][y])
+                    self.map[x][y] = np.add(
+                        self.map[x][y], np.multiply(feature_error_matrix, activation_matrix[x][y]))
+        #             sys.stdout.write(' #')
+        #         else:
+        #             sys.stdout.write(' .')
+        #     sys.stdout.write('\n')
+        # sys.stdout.write('\n')
 
     def train_feature_map(self, feature_map):
         for sample_unit in feature_map.map:
+            # print 'Train sample -> %s' % sample_unit.__hash__()
             self.train_feature_vector(sample_unit)
