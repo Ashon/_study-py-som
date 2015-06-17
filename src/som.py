@@ -1,9 +1,7 @@
 
 
 import numpy as np
-
 import som_util
-
 import sys
 
 WEIGHT_VALUE_RANGE = som_util.ValueRange(min=0, max=1)
@@ -98,33 +96,43 @@ class Som(FeatureMap):
     def train_feature_vector(self, feature_vector):
 
         bmu_coord = np.array(self.get_bmu_coord(feature_vector))
-
         gain = self._gain * (1 - self.get_progress())
-        gain = gain * gain
+        squared_gain = gain * gain
+
         coord_matrix = np.array([
             [x, y] for x in range(self._width) for y in range(self._height)
         ]).reshape(self._width, self._height, 2)
 
         distance_matrix = np.subtract(coord_matrix, bmu_coord)
         squared_dist_matrix = np.multiply(distance_matrix, -distance_matrix).sum(axis=2)
+        activation_map = np.multiply(
+            np.exp(np.divide(squared_dist_matrix, squared_gain)), self._learning_rate
+        )
+        feature_error_map = np.subtract(self.map, feature_vector)
 
-        activation_matrix = np.exp(np.divide(squared_dist_matrix, gain))
+        # print activation_map <= 1
         # print '\nactivation_matrix =>\n', activation_matrix
 
+        # print feature_error_map <= 1
         # sys.stdout.write('bmu_coord => \n%s\n' % bmu_coord)
-        for x in range(self._width):
-            for y in range(self._height):
-                if activation_matrix[x][y] > self._learn_threshold:
-                    feature_error_matrix = np.subtract(feature_vector, self.map[x][y])
-                    self.map[x][y] = np.add(
-                        self.map[x][y], np.multiply(feature_error_matrix, activation_matrix[x][y]))
+        # print 'shape [ map ] =>', self.map.shape
+        # print 'shape [ err ] =>', feature_error_map.shape
+        # print 'shape [ act ] =>', activation_map.shape
+        for x, error_col, activate_col in zip(range(self._width), feature_error_map, activation_map):
+            for y, feature_error, activate in zip(range(self._height), error_col, activate_col):
+                if activate >= self._learn_threshold:
+                    bonus_weight = np.multiply(feature_error, activate * self._learning_rate)
+                    # print 'err', feature_error[0], feature_error[0] > 1
+                    # print bonus_weight
+                    self.map[x][y] = np.clip(np.add(self.map[x][y], bonus_weight), a_min=0, a_max=1)
         #             sys.stdout.write(' #')
         #         else:
         #             sys.stdout.write(' .')
         #     sys.stdout.write('\n')
         # sys.stdout.write('\n')
 
+
     def train_feature_map(self, feature_map):
         for sample_unit in feature_map.map:
-            # print 'Train sample -> %s' % sample_unit.__hash__()
             self.train_feature_vector(sample_unit)
+            # print 'Train sample -> %s' % sample_unit.__hash__()

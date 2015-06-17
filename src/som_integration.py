@@ -13,19 +13,19 @@ def main():
         'dimension': 10000,
         'randomize': True,
         'gain': 10,
-        'max_iteration': 100,
+        'max_iteration': 10,
     }
     print 'Initialize SOM => %s' % ''.join([
         '[%s=%s]' % (key, som_info[key]) for key in som_info.keys()
     ])
     som = Som(**som_info)
 
-    sample_length = 100
+    sample_length = 10000
     print 'Initialize Samples [sample_length=%s]' % sample_length
     sample_map = FeatureMap(
         width=sample_length, height=1,
         dimension=som_info['dimension'], randomize=True)
-
+    # print sample_map.map < 1
     total_time = 0
 
     print 'Train Start'
