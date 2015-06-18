@@ -9,15 +9,15 @@ import numpy as np
 
 def main():
 
-    width = 10
-    height = 10
+    width = 20
+    height = 20
     som_info = {
         'width': width,
         'height': height,
-        'dimension': 10,
+        'dimension': 100,
         'randomize': True,
         'gain': 50,
-        'max_iteration': 200,
+        'max_iteration': 100,
     }
     print 'Initialize SOM => %s' % ''.join([
         '[%s=%s]' % (key, som_info[key]) for key in som_info.keys()
@@ -45,8 +45,8 @@ def main():
 
         # bmu_idx_list = [som.get_bmu_coord(unit) for unit in sample_map.map]
 
-        # print 'Train Result [progress={progress:.3f} %] [exec_time={exec_time:.3f} sec]'.format(
-        #     progress=som.get_progress() * 100, exec_time=train_execution_time)
+        print 'Train Result [progress={progress:.3f} %] [exec_time={exec_time:.3f} sec]'.format(
+            progress=som.get_progress() * 100, exec_time=train_execution_time)
 
         # print 'Sample idx |', ' | '.join(['{sid:3d}'.format(sid=i) for i in range(sample_length)])
         # print 'BMU idx    |', ' | '.join(['{bid}'.format(bid=(str(bid[0]) + '-' + str(bid[1]))) for bid in bmu_idx_list])
@@ -62,33 +62,39 @@ def main():
     sample_a = sample_map.map[0]
     # print sample_a
 
-    sample_error_map = np.subtract(som.map, sample_a)
-    sample_error_map = np.multiply(sample_error_map, sample_error_map)
-    sample_error_map = np.sum(sample_error_map, axis=2)
 
-    sample_max_err = np.max(sample_error_map)
-
-    sample_a_sim_map = np.divide(sample_error_map, sample_max_err)
     # print som.map
 
-    print '+-%s-+' % ('--' * width)
-    for x in range(width):
-        sys.stdout.write('| ')
-        for y in range(height):
-            i = sample_error_map[x][y]
-            if i > 0.8:
-                mark = ' '
-            elif i > 0.6:
-                mark = '.'
-            elif i > 0.4:
-                mark = '-'
-            elif i > 0.2:
-                mark = '*'
-            else:
-                mark = '#'
-            sys.stdout.write(' ' + mark)
-        sys.stdout.write(' |\n')
-    sys.stdout.write('\n')
-    print '+-%s-+' % ('--' * width)
+    def print_simmap(sample):
+        sample_error_map = np.subtract(som.map, sample)
+        sample_error_map = np.multiply(sample_error_map, sample_error_map)
+        sample_error_map = np.sum(sample_error_map, axis=2)
+
+        sample_max_err = np.max(sample_error_map)
+
+        sample_a_sim_map = np.divide(sample_error_map, sample_max_err)
+        print '--' * width
+        for x in range(width):
+            for y in range(height):
+                i = sample_a_sim_map[x][y]
+                if i == 1:
+                    mark = '#'
+                elif 0.98 <= i < 1:
+                    mark = '*'
+                elif 0.86 <= i > 0.98:
+                    mark = '+'
+                elif 0.64 <= i < 0.86:
+                    mark = '-'
+                elif 0.52 <= i < 0.64:
+                    mark = '.'
+                else:
+                    mark = ' '
+                sys.stdout.write(' ' + mark)
+            sys.stdout.write('\n')
+        sys.stdout.write('\n')
+
+    for sample in sample_map.map:
+        print_simmap(sample)
+
 if __name__ == '__main__':
     main()
