@@ -6,6 +6,7 @@ import sys
 
 WEIGHT_VALUE_RANGE = som_util.ValueRange(min=0, max=1)
 
+
 class FeatureMap(object):
 
     def __init__(self, width=0, height=0, dimension=0, randomize=False):
@@ -23,6 +24,7 @@ class FeatureMap(object):
 
     def get_bmu_coord(self, feature_vector):
         ''' returns best matching unit's coord '''
+
         error_list = np.subtract(self.map, feature_vector)
         squared_error_list = np.multiply(error_list, error_list)
         sum_squared_error_list = np.sum(squared_error_list, axis=2)
@@ -104,11 +106,11 @@ class Som(FeatureMap):
         ]).reshape(self._width, self._height, 2)
 
         distance_matrix = np.subtract(coord_matrix, bmu_coord)
-        squared_dist_matrix = np.multiply(distance_matrix, -distance_matrix).sum(axis=2)
+        squared_dist_matrix = np.multiply(distance_matrix, distance_matrix).sum(axis=2)
         activation_map = np.multiply(
-            np.exp(np.divide(squared_dist_matrix, squared_gain)), self._learning_rate
+            np.exp(np.divide(-squared_dist_matrix, squared_gain)), self._learning_rate
         )
-        feature_error_map = np.subtract(self.map, feature_vector)
+        feature_error_map = np.add(-self.map, feature_vector)
 
         # print activation_map <= 1
         # print '\nactivation_matrix =>\n', activation_matrix
@@ -122,9 +124,9 @@ class Som(FeatureMap):
             for y, feature_error, activate in zip(range(self._height), error_col, activate_col):
                 if activate >= self._learn_threshold:
                     bonus_weight = np.multiply(feature_error, activate * self._learning_rate)
-                    # print 'err', feature_error[0], feature_error[0] > 1
-                    # print bonus_weight
                     self.map[x][y] = np.clip(np.add(self.map[x][y], bonus_weight), a_min=0, a_max=1)
+        #             print 'err', feature_error[0], feature_error[0] > 1
+        #             print bonus_weight
         #             sys.stdout.write(' #')
         #         else:
         #             sys.stdout.write(' .')
