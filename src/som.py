@@ -31,12 +31,6 @@ class FeatureMap(object):
         min_error = np.amin(sum_squared_error_list)
         min_error_address = np.where(sum_squared_error_list == min_error)
 
-        # print '\nerror_list =>\n', error_list
-        # print '\nsqaured_error_list =>\n', squared_error_list
-        # print '\nsum_squared_error_list =>\n', sum_squared_error_list
-        # print '\nmin_error =>\n', min_error
-        # print '\nmin_error_address =>\n', min_error_address
-
         return [min_error_address[0][0], min_error_address[1][0]]
 
     def get_bmu(self, feature_vector):
@@ -112,29 +106,13 @@ class Som(FeatureMap):
         )
         feature_error_map = np.add(-self.map, feature_vector)
 
-        # print activation_map <= 1
-        # print '\nactivation_matrix =>\n', activation_matrix
-
-        # print feature_error_map <= 1
-        # sys.stdout.write('bmu_coord => \n%s\n' % bmu_coord)
-        # print 'shape [ map ] =>', self.map.shape
-        # print 'shape [ err ] =>', feature_error_map.shape
-        # print 'shape [ act ] =>', activation_map.shape
         for x, error_col, activate_col in zip(range(self._width), feature_error_map, activation_map):
             for y, feature_error, activate in zip(range(self._height), error_col, activate_col):
                 if activate >= self._learn_threshold:
                     bonus_weight = np.multiply(feature_error, activate * self._learning_rate)
                     self.map[x][y] = np.clip(np.add(self.map[x][y], bonus_weight), a_min=0, a_max=1)
-        #             print 'err', feature_error[0], feature_error[0] > 1
-        #             print bonus_weight
-        #             sys.stdout.write(' #')
-        #         else:
-        #             sys.stdout.write(' .')
-        #     sys.stdout.write('\n')
-        # sys.stdout.write('\n')
 
 
     def train_feature_map(self, feature_map):
         for sample_unit in feature_map.map:
             self.train_feature_vector(sample_unit)
-            # print 'Train sample -> %s' % sample_unit.__hash__()

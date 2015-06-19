@@ -80,13 +80,13 @@ def main():
                 if i == 1:
                     mark = '#'
                 elif 0.98 <= i < 1:
-                    mark = '*'
-                elif 0.86 <= i > 0.98:
-                    mark = '+'
+                    mark = 'a'
+                elif 0.86 <= i < 0.98:
+                    mark = 'b'
                 elif 0.64 <= i < 0.86:
-                    mark = '-'
+                    mark = 'c'
                 elif 0.52 <= i < 0.64:
-                    mark = '.'
+                    mark = 'd'
                 else:
                     mark = ' '
                 sys.stdout.write(' ' + mark)
