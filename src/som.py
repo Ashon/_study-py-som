@@ -1,46 +1,43 @@
 
+
 import numpy as np
-import math
-
 import som_util
-import point_2d
-
+import sys
 
 WEIGHT_VALUE_RANGE = som_util.ValueRange(min=0, max=1)
-
-class FeatureVector(point_2d.Point2D):
-
-    def __init__(self, x=0, y=0, dimension=0, randomize=False):
-        super(FeatureVector, self).__init__(x, y)
-
-        if randomize:
-            fill_method = np.random.rand
-        else:
-            fill_method = np.zeros
-
-        self.weights = fill_method(dimension)
-        self.dimension = dimension
 
 
 class FeatureMap(object):
 
     def __init__(self, width=0, height=0, dimension=0, randomize=False):
 
-        self.units = [
-            FeatureVector(x=x, y=y, randomize=randomize, dimension=dimension)
-            for x in range(width) for y in range(height)
-        ]
+        if randomize:
+            fill_method = np.random.rand
+        else:
+            fill_method = np.zeros
 
+        self.map = fill_method(width * height * dimension).reshape(width, height, dimension)
+
+        self._width = width
+        self._height = height
         self.dimension = dimension
 
-    def get_bmu(self, feature_vector):
-        ''' returns best matching unit '''
-        return self.units[self.get_bmu_index(feature_vector)]
+    def get_bmu_coord(self, feature_vector):
+        ''' returns best matching unit's coord '''
 
-    def get_bmu_index(self, feature_vector):
-        ''' returns best matching unit's index '''
-        feature_errors = [som_util.get_squared_error(unit, feature_vector) for unit in self.units]
-        return feature_errors.index(min(feature_errors))
+        error_list = np.subtract(self.map, feature_vector)
+        squared_error_list = np.multiply(error_list, error_list)
+        sum_squared_error_list = np.sum(squared_error_list, axis=2)
+        min_error = np.amin(sum_squared_error_list)
+        min_error_address = np.where(sum_squared_error_list == min_error)
+
+        return [min_error_address[0][0], min_error_address[1][0]]
+
+    def get_bmu(self, feature_vector):
+        ''' returns bmu '''
+        bmu_coord = self.get_bmu_coord(feature_vector)
+
+        return self.map[bmu_coord]
 
 
 class Som(FeatureMap):
@@ -93,18 +90,28 @@ class Som(FeatureMap):
         return float(self._iteration) / self._max_iteration_count
 
     def train_feature_vector(self, feature_vector):
-        bmu = self.get_bmu(feature_vector)
-        gain = self._gain * (1 - self.get_progress())
-        gain = gain * gain
 
-        for unit in self.units:
-            activate = math.exp(-bmu.get_squared_distance(unit) / gain) * self._learning_rate
-            if activate > self._learn_threshold:
-                unit.weights = np.add(unit.weights, np.multiply(
-                        np.subtract(feature_vector.weights, unit.weights), activate
-                    )
-                )
+        bmu_coord = np.array(self.get_bmu_coord(feature_vector))
+        gain = self._gain * (1 - self.get_progress())
+        squared_gain = gain * gain
+
+        coord_matrix = np.array([
+            [x, y] for x in range(self._width) for y in range(self._height)
+        ]).reshape(self._width, self._height, 2)
+
+        distance_matrix = np.subtract(coord_matrix, bmu_coord)
+        squared_dist_matrix = np.multiply(distance_matrix, distance_matrix).sum(axis=2)
+        activation_map = np.multiply(
+            np.exp(np.divide(-squared_dist_matrix, squared_gain)), self._learning_rate
+        )
+        feature_error_map = np.add(-self.map, feature_vector)
+
+        for x, error_col, activate_col in zip(range(self._width), feature_error_map, activation_map):
+            for y, feature_error, activate in zip(range(self._height), error_col, activate_col):
+                if activate >= self._learn_threshold:
+                    bonus_weight = np.multiply(feature_error, activate * self._learning_rate)
+                    self.map[x][y] = np.clip(np.add(self.map[x][y], bonus_weight), a_min=0, a_max=1)
 
     def train_feature_map(self, feature_map):
-        for sample_unit in feature_map.units:
+        for sample_unit in feature_map.map:
             self.train_feature_vector(sample_unit)
