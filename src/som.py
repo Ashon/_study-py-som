@@ -23,12 +23,25 @@ class FeatureMap(object):
         self.dimension = dimension
 
     def get_bmu_coord(self, feature_vector):
-        ''' returns best matching unit's coord '''
+        ''' returns best matching unit's coord
 
+            @complexity
+                O((width * height) * (3 * dimension + 2))
+        '''
+
+        # O(width * height * dimension)
         error_list = np.subtract(self.map, feature_vector)
+
+        # O(width * height * dimension)
         squared_error_list = np.multiply(error_list, error_list)
+
+        # O(width * height * dimension)
         sum_squared_error_list = np.sum(squared_error_list, axis=2)
+
+        # O(width * height)
         min_error = np.amin(sum_squared_error_list)
+
+        # O(width * height)
         min_error_address = np.where(sum_squared_error_list == min_error)
 
         return [min_error_address[0][0], min_error_address[1][0]]
@@ -90,22 +103,36 @@ class Som(FeatureMap):
         return float(self._iteration) / self._max_iteration_count
 
     def train_feature_vector(self, feature_vector):
-
+        '''
+            @complexity
+                O((width * height) * (4 * dimension + 7))
+        '''
+        # O((width * height) * (3 * dimension + 2))
         bmu_coord = np.array(self.get_bmu_coord(feature_vector))
         gain = self._gain * (1 - self.get_progress())
         squared_gain = gain * gain
 
+        # O(width * height)
         coord_matrix = np.array([
             [x, y] for x in range(self._width) for y in range(self._height)
         ]).reshape(self._width, self._height, 2)
 
+        # O(width * height)
         distance_matrix = np.subtract(coord_matrix, bmu_coord)
+
+        # O(width * height)
         squared_dist_matrix = np.multiply(distance_matrix, distance_matrix).sum(axis=2)
+
+        # O(width * height)
         activation_map = np.multiply(
             np.exp(np.divide(-squared_dist_matrix, squared_gain)), self._learning_rate
         )
-        feature_error_map = np.add(-self.map, feature_vector)
 
+        # O(width * height)
+        negative_map = -self.map
+        feature_error_map = np.add(negative_map, feature_vector)
+
+        # O(width * height * dimension)
         for x, error_col, activate_col in zip(range(self._width), feature_error_map, activation_map):
             for y, feature_error, activate in zip(range(self._height), error_col, activate_col):
                 if activate >= self._learn_threshold:

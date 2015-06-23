@@ -8,13 +8,13 @@ import sys
 import numpy as np
 
 def main():
-
-    width = 20
-    height = 20
+    # 200,000,000,000
+    width = 100
+    height = 100
     som_info = {
         'width': width,
         'height': height,
-        'dimension': 100,
+        'dimension': 10000,
         'randomize': True,
         'gain': 50,
         'max_iteration': 100,
