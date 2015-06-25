@@ -10,8 +10,7 @@ ValueRange = namedtuple('ValueRange', 'min max')
 def get_random(min_value, max_value):
     return random() * max_value + min_value
 
-def clamp(value, min_value, max_value):
-    return min_value if value < min_value else max_value if max_value < value else value
+
 
 def get_squared_error(feature_vector_a, feature_vector_b):
     ''' returns squared euclidean distance '''

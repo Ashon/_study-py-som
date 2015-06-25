@@ -3,7 +3,6 @@ import time
 
 from som import Som
 from som import FeatureMap
-import som_util
 import sys
 import numpy as np
 
@@ -39,8 +38,8 @@ def main():
         sys.stdout.write('\n')
 
     # 200,000,000,000
-    width = 10
-    height = 10
+    width = 5
+    height = 5
     som_info = {
         'width': width,
         'height': height,
@@ -52,7 +51,7 @@ def main():
 
     som = Som(**som_info)
 
-    sample_length = 1000
+    sample_length = 100
     sample_map = FeatureMap(
         width=sample_length, height=1,
         dimension=som_info['dimension'], randomize=True)

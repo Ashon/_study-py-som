@@ -9,11 +9,13 @@ import logging
 import time
 
 import numpy as np
-import som_util
 
 logging.basicConfig(
     format='[%(asctime)s] [%(levelname)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
+    datefmt='%Y-%m-%d %H:%M:%S', level=logging.DEBUG)
+
+def clamp(value, min_value, max_value):
+    return min_value if value < min_value else max_value if max_value < value else value
 
 class FeatureMap(object):
 
@@ -35,8 +37,7 @@ class FeatureMap(object):
             width=self._width, height=self._height))
 
     def get_bmu_coord(self, feature_vector):
-        ''' returns best matching unit's coord
-
+        ''' returns best matching unit's coor
             @complexity
                 O((width * height) * (3 * dimension + 2))
         '''
@@ -82,8 +83,8 @@ class Som(FeatureMap):
             width=width, height=height,
             dimension=dimension, randomize=randomize)
 
-        self._threshold = som_util.clamp(threshold, 0, 1)
-        self._learning_rate = som_util.clamp(learning_rate, 0, 1)
+        self._threshold = clamp(threshold, 0, 1)
+        self._learning_rate = clamp(learning_rate, 0, 1)
         self._learn_threshold = self._threshold * self._learning_rate
 
         self._gain = gain
@@ -98,14 +99,14 @@ class Som(FeatureMap):
         self._learn_threshold = self._threshold * self._learning_rate
 
     def set_learning_rate(self, learning_rate):
-        self._learning_rate = som_util.clamp(learning_rate, 0, 1)
+        self._learning_rate = clamp(learning_rate, 0, 1)
         self._set_learn_threshold()
 
     def get_learning_rate(self):
         return self._learning_rate
 
     def set_threshold(self, threshold):
-        self._threshold = som_util.clamp(threshold, 0, 1)
+        self._threshold = clamp(threshold, 0, 1)
         self._set_learn_threshold()
 
     def get_threshold(self):
