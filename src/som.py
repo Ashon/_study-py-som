@@ -5,11 +5,8 @@
     @author ashon
 '''
 
-import logging
 import time
-
 import numpy as np
-
 import som_util
 
 def clamp(value, min_value, max_value):
@@ -40,20 +37,33 @@ class FeatureMap(object):
             log_level='INFO', instance=self, dimension=self._dimension,
             width=self._width, height=self._height)
 
-    def get_bmu_coord(self, feature_vector):
+    def get_error_map(self, feature_vector):
+
+        start_time = time.time()
+
+        error_map = np.add(-self.map, feature_vector)
+
+        exec_time = time.time() - start_time
+        som_util.log_with_args(exec_time=exec_time, message='get error map')
+
+        return error_map
+
+    def get_bmu_coord(self, error_map):
         ''' Returns best matching unit's coord.
             Select nearist neighbor.
         '''
 
         start_time = time.time()
 
-        error_list = np.subtract(self.map, feature_vector)
-        squared_error_list = np.multiply(error_list, error_list)
-        sum_squared_error_list = np.sum(squared_error_list, axis=2)
-        min_error = np.amin(sum_squared_error_list)
-        min_error_address = np.where(sum_squared_error_list == min_error)
+        squared_error_map = np.multiply(error_map, error_map)
+        sum_squared_error_map = np.sum(squared_error_map, axis=2)
+        min_error = np.amin(sum_squared_error_map)
+        min_error_coords = np.where(sum_squared_error_map == min_error)
 
-        bmu_coord = np.array([min_error_address[0][0], min_error_address[1][0]])
+        bmu_coord = np.array([
+            min_error_coords[0][0],
+            min_error_coords[1][0]
+        ])
 
         exec_time = time.time() - start_time
         som_util.log_with_args(
@@ -62,9 +72,9 @@ class FeatureMap(object):
 
         return bmu_coord
 
-    def get_bmu(self, feature_vector):
+    def get_bmu(self, error_map):
         ''' returns bmu '''
-        bmu_coord = self.get_bmu_coord(feature_vector)
+        bmu_coord = self.get_bmu_coord(error_map)
 
         return self.map[bmu_coord]
 
@@ -135,24 +145,15 @@ class Som(FeatureMap):
         distance_matrix = np.subtract(coord_matrix, coord)
         squared_dist_matrix = np.multiply(distance_matrix, distance_matrix).sum(axis=2)
         activation_map = np.multiply(
-            np.exp(np.divide(-squared_dist_matrix, squared_gain)), self._learning_rate
+            np.exp(
+                np.divide(-squared_dist_matrix, squared_gain)
+            ), self._learning_rate
         )
 
         exec_time = time.time() - start_time
         som_util.log_with_args(exec_time=exec_time, message='generate activation map')
 
         return activation_map
-
-    def get_error_map(self, feature_vector):
-
-        start_time = time.time()
-
-        error_map = np.add(-self.map, feature_vector)
-
-        exec_time = time.time() - start_time
-        som_util.log_with_args(exec_time=exec_time, message='get error map')
-
-        return error_map
 
     def get_bonus_weight_map(self, error_map, activation_map):
         trained_count = 0
@@ -177,8 +178,8 @@ class Som(FeatureMap):
 
     def train_feature_vector(self, feature_vector):
 
-        bmu_coord = self.get_bmu_coord(feature_vector)
         error_map = self.get_error_map(feature_vector)
+        bmu_coord = self.get_bmu_coord(error_map)
         activation_map = self.get_activation_map(bmu_coord)
         bonus_weight_map = self.get_bonus_weight_map(
             error_map=error_map, activation_map=activation_map)
