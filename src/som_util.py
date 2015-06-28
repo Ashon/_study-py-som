@@ -4,8 +4,9 @@ import numpy as np
 import sys
 
 logging.basicConfig(
+    filename='som.log',
     format='[%(asctime)s] [%(levelname)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S', level=logging.DEBUG)
+    datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
 
 def log_with_args(log_level='DEBUG', instance=None, exec_time=None, message='', **kwargs):
 

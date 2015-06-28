@@ -1,6 +1,6 @@
 
-from som import Som
-from som import FeatureMap
+from som_profiler import SomProfiler
+from som_profiler import FeatureMapProfiler
 import som_util
 
 def main():
@@ -11,16 +11,16 @@ def main():
     som_info = {
         'width': width,
         'height': height,
-        'dimension': 3,
+        'dimension': 450,
         'randomize': True,
-        'gain': 200,
+        'gain': 20,
         'max_iteration': 100,
     }
 
-    som = Som(**som_info)
+    som = SomProfiler(**som_info)
 
     sample_length = 10000
-    sample_map = FeatureMap(
+    sample_map = FeatureMapProfiler(
         width=sample_length, height=1,
         dimension=som_info['dimension'], randomize=True)
 
