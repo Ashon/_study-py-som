@@ -5,24 +5,23 @@ import som_util
 
 def main():
 
-    # 200,000,000,000
-    width = 25
-    height = 25
-    som_info = {
+    width = 100
+    height = 100
+    dimension = 10000
+
+    som = SomProfiler(**{
         'width': width,
         'height': height,
-        'dimension': 450,
+        'dimension': dimension,
         'randomize': True,
         'gain': 20,
         'max_iteration': 100,
-    }
+    })
 
-    som = SomProfiler(**som_info)
-
-    sample_length = 10000
+    sample_length = 15
     sample_map = FeatureMapProfiler(
         width=sample_length, height=1,
-        dimension=som_info['dimension'], randomize=True)
+        dimension=dimension, randomize=True)
 
     som.train(sample_map)
 

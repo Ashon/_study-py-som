@@ -18,11 +18,26 @@ class FeatureMapProfiler(FeatureMap):
             log_level='INFO', instance=self, dimension=self._dimension,
             width=self._width, height=self._height)
 
+class SomProfiler(Som):
+
+    def __init__(self, width=0, height=0, dimension=0, randomize=False,
+                 threshold=0.5, learning_rate=0.05, max_iteration=5, gain=2):
+
+        super(SomProfiler, self).__init__(
+            width=width, height=height, dimension=dimension, randomize=randomize,
+            threshold=threshold, learning_rate=learning_rate,
+            max_iteration=max_iteration, gain=gain)
+
+        som_util.log_with_args(
+            log_level='INFO', instance=self, threshold=self._threshold, gain=self._gain,
+            learning_rate=self._learning_rate, iteration=self._max_iteration_count
+        )
+
     def get_error_map(self, feature_vector):
 
         start_time = time.time()
 
-        error_map = super(FeatureMapProfiler, self).get_error_map(feature_vector)
+        error_map = super(SomProfiler, self).get_error_map(feature_vector)
 
         exec_time = time.time() - start_time
         som_util.log_with_args(exec_time=exec_time, message='get error map')
@@ -42,23 +57,6 @@ class FeatureMapProfiler(FeatureMap):
             x=bmu_coord[0], y=bmu_coord[1])
 
         return bmu_coord
-
-
-class SomProfiler(Som):
-
-    def __init__(self, width=0, height=0, dimension=0, randomize=False,
-                 threshold=0.5, learning_rate=0.05, max_iteration=5, gain=2):
-
-        super(SomProfiler, self).__init__(
-            width=width, height=height, dimension=dimension, randomize=randomize,
-            threshold=threshold, learning_rate=learning_rate,
-            max_iteration=max_iteration, gain=gain)
-
-        som_util.log_with_args(
-            log_level='INFO', instance=self, threshold=self._threshold, gain=self._gain,
-            learning_rate=self._learning_rate, iteration=self._max_iteration_count
-        )
-
     def get_activation_map(self, coord):
 
         start_time = time.time()

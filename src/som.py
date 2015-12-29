@@ -42,8 +42,7 @@ class FeatureMap(object):
             Select nearist neighbor.
         '''
 
-        squared_error_map = np.multiply(error_map, error_map)
-        sum_squared_error_map = np.sum(squared_error_map, axis=2)
+        sum_squared_error_map = np.sum(error_map ** 2, axis=2)
         min_error = np.amin(sum_squared_error_map)
         min_error_coords = np.where(sum_squared_error_map == min_error)
 
@@ -112,19 +111,16 @@ class Som(FeatureMap):
 
     def get_activation_map(self, coord):
 
-        gain = self._gain * (1 - self.get_progress())
-        squared_gain = gain * gain
+        gain = (self._gain * (1 - self.get_progress())) ** 2
 
         coord_matrix = np.array([
             [x, y] for x in self._width_range for y in self._height_range
         ]).reshape(self._width, self._height, 2)
 
-        distance_matrix = np.subtract(coord_matrix, coord)
+        distance_matrix = np.subtract(coord_matrix, coord) ** 2
         activation_map = np.multiply(
             np.exp(
-                np.divide(-np.multiply(
-                    distance_matrix, distance_matrix
-                ).sum(axis=2), squared_gain)
+                np.divide(-distance_matrix.sum(axis=2), gain)
             ), self._learning_rate
         )
 
