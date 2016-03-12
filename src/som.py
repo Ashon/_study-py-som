@@ -1,5 +1,4 @@
 
-
 import numpy as np
 import som_util
 import sys
@@ -12,11 +11,13 @@ class FeatureMap(object):
     def __init__(self, width=0, height=0, dimension=0, randomize=False):
 
         if randomize:
-            fill_method = np.random.rand
+            filler = np.random.rand
         else:
-            fill_method = np.zeros
+            filler = np.zeros
 
-        self.map = fill_method(width * height * dimension).reshape(width, height, dimension)
+        self.map = filler(
+            width * height * dimension
+        ).reshape(width, height, dimension)
 
         self._width = width
         self._height = height
@@ -100,18 +101,30 @@ class Som(FeatureMap):
         ]).reshape(self._width, self._height, 2)
 
         distance_matrix = np.subtract(coord_matrix, bmu_coord)
-        squared_dist_matrix = np.multiply(distance_matrix, distance_matrix).sum(axis=2)
+
+        squared_dist_matrix = np.multiply(
+            distance_matrix, distance_matrix).sum(axis=2)
+
         activation_map = np.multiply(
-            np.exp(np.divide(-squared_dist_matrix, squared_gain)), self._learning_rate
-        )
+            np.exp(
+                np.divide(-squared_dist_matrix, squared_gain)),
+            self._learning_rate)
+
         feature_error_map = np.add(-self.map, feature_vector)
 
-        for x, error_col, activate_col in zip(range(self._width), feature_error_map, activation_map):
-            for y, feature_error, activate in zip(range(self._height), error_col, activate_col):
+        for x, error_col, activate_col in zip(
+                range(self._width), feature_error_map, activation_map):
+
+            for y, feature_error, activate in zip(
+                    range(self._height), error_col, activate_col):
+
                 if activate >= self._learn_threshold:
-                    bonus_weight = np.multiply(feature_error, activate * self._learning_rate)
-                    self.map[x][y] = np.clip(np.add(self.map[x][y], bonus_weight), a_min=0, a_max=1)
+                    bonus_weight = np.multiply(
+                        feature_error, activate * self._learning_rate)
+                    self.map[x][y] = np.clip(
+                        np.add(self.map[x][y], bonus_weight), a_min=0, a_max=1)
 
     def train_feature_map(self, feature_map):
         for sample_unit in feature_map.map:
             self.train_feature_vector(sample_unit)
+
