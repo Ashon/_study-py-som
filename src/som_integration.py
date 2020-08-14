@@ -3,36 +3,36 @@ import time
 
 from som import Som
 from som import FeatureMap
-import som_util
-import sys
-import numpy as np
+from som_util import print_map
+
 
 def main():
-
-    width = 20
-    height = 20
+    width = 50
+    height = 50
     som_info = {
         'width': width,
         'height': height,
-        'dimension': 100,
-        'randomize': True,
-        'gain': 50,
+        'dimension': 10,
+        'randomize': False,
+        'gain': 30,
         'max_iteration': 100,
+        'learning_rate': 0.3
     }
-    print 'Initialize SOM => %s' % ''.join([
+
+    print('Initialize SOM => %s' % ''.join([
         '[%s=%s]' % (key, som_info[key]) for key in som_info.keys()
-    ])
+    ]))
     som = Som(**som_info)
 
     sample_length = 20
-    print 'Initialize Samples [sample_length=%s]' % sample_length
+    print('Initialize Samples [sample_length=%s]' % sample_length)
     sample_map = FeatureMap(
         width=sample_length, height=1,
         dimension=som_info['dimension'], randomize=True)
-    # print sample_map.map < 1
+
     total_time = 0
 
-    print 'Train Start'
+    print('Train Start')
     while som.get_progress() < 1:
 
         start_time = time.time()
@@ -43,58 +43,20 @@ def main():
 
         total_time += train_execution_time
 
-        # bmu_idx_list = [som.get_bmu_coord(unit) for unit in sample_map.map]
+        print((
+            'Train Result'
+            f' [progress={som.get_progress():.3f} %]'
+            f' [exec_time={train_execution_time:.3f} sec]'
+        ))
 
-        print 'Train Result [progress={progress:.3f} %] [exec_time={exec_time:.3f} sec]'.format(
-            progress=som.get_progress() * 100, exec_time=train_execution_time)
+    print('Train Complete.')
+    print(f'Total Exec [{total_time:.3f} sec]')
+    print(f'Iteration Count [{som.get_iteration_count()}]')
+    print(f'Exec AVG [{total_time / som.get_iteration_count():.3f} sec]')
 
-        # print 'Sample idx |', ' | '.join(['{sid:3d}'.format(sid=i) for i in range(sample_length)])
-        # print 'BMU idx    |', ' | '.join(['{bid}'.format(bid=(str(bid[0]) + '-' + str(bid[1]))) for bid in bmu_idx_list])
+    for idx in range(len(sample_map.map)):
+        print_map(som, sample_map, idx)
 
-    print 'Train Complete.'
-    print 'Total Exec [{exec_total:.3f} sec]'.format(exec_total=total_time)
-    print 'Iteration Count [{iteration}]'.format(iteration=som.get_iteration_count())
-    print 'Exec AVG [{exec_avg:.3f} sec]'.format(exec_avg=total_time / som.get_iteration_count())
-
-    # for unit in som.units:
-    #     print unit, '\t'.join(['{sample:.7f}'.format(sample=sample) for sample in unit.weights])
-
-    sample_a = sample_map.map[0]
-    # print sample_a
-
-
-    # print som.map
-
-    def print_simmap(sample):
-        sample_error_map = np.subtract(som.map, sample)
-        sample_error_map = np.multiply(sample_error_map, sample_error_map)
-        sample_error_map = np.sum(sample_error_map, axis=2)
-
-        sample_max_err = np.max(sample_error_map)
-
-        sample_a_sim_map = np.divide(sample_error_map, sample_max_err)
-        print '--' * width
-        for x in range(width):
-            for y in range(height):
-                i = sample_a_sim_map[x][y]
-                if i == 1:
-                    mark = '#'
-                elif 0.98 <= i < 1:
-                    mark = 'a'
-                elif 0.86 <= i < 0.98:
-                    mark = 'b'
-                elif 0.64 <= i < 0.86:
-                    mark = 'c'
-                elif 0.52 <= i < 0.64:
-                    mark = 'd'
-                else:
-                    mark = ' '
-                sys.stdout.write(' ' + mark)
-            sys.stdout.write('\n')
-        sys.stdout.write('\n')
-
-    for sample in sample_map.map:
-        print_simmap(sample)
 
 if __name__ == '__main__':
     main()

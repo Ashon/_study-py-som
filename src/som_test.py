@@ -74,19 +74,18 @@ class TestSom(unittest.TestCase):
         sample_vector = FeatureVector(dimension=2, randomize=False)
         sample_vector.set_weights([1, 1])
         for unit in self.som.units:
-            print unit, unit.weights, 'SIM[{sim:.3f}]'.format(
-                sim=unit.get_euclidean_similarity(sample_vector))
+            print(unit, unit.weights, 'SIM[{sim:.3f}]'.format(
+                sim=unit.get_euclidean_similarity(sample_vector)))
         self.som.train_feature_vector(sample_vector)
 
-
         for unit in self.som.units:
-            print unit, unit.weights, 'SIM[{sim:.3f}]'.format(
-                sim=unit.get_euclidean_similarity(sample_vector))
+            print(unit, unit.weights, 'SIM[{sim:.3f}]'.format(
+                sim=unit.get_euclidean_similarity(sample_vector)))
 
         bmu = self.som.get_bmu(sample_vector)
         bmu_idx = self.som.get_bmu_index(sample_vector)
-        print 'BMU[%s]' % bmu_idx, bmu, bmu.weights
-        print sample_vector.weights
+        print('BMU[%s]' % bmu_idx, bmu, bmu.weights)
+        print(sample_vector.weights)
 
 
 if __name__ == '__main__':

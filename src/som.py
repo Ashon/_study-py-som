@@ -1,15 +1,12 @@
 
 import numpy as np
 import som_util
-import sys
 
 WEIGHT_VALUE_RANGE = som_util.ValueRange(min=0, max=1)
 
 
 class FeatureMap(object):
-
     def __init__(self, width=0, height=0, dimension=0, randomize=False):
-
         if randomize:
             filler = np.random.rand
         else:
@@ -26,11 +23,11 @@ class FeatureMap(object):
     def get_bmu_coord(self, feature_vector):
         ''' returns best matching unit's coord '''
 
-        error_list = np.subtract(self.map, feature_vector)
-        squared_error_list = np.multiply(error_list, error_list)
-        sum_squared_error_list = np.sum(squared_error_list, axis=2)
-        min_error = np.amin(sum_squared_error_list)
-        min_error_address = np.where(sum_squared_error_list == min_error)
+        errors = np.subtract(self.map, feature_vector)
+        squared_errors = np.multiply(errors, errors)
+        sum_squared_errors = np.sum(squared_errors, axis=2)
+        min_error = np.amin(sum_squared_errors)
+        min_error_address = np.where(sum_squared_errors == min_error)
 
         return [min_error_address[0][0], min_error_address[1][0]]
 
@@ -40,9 +37,16 @@ class FeatureMap(object):
 
         return self.map[bmu_coord]
 
+    @property
+    def width(self):
+        return self._width
+
+    @property
+    def height(self):
+        return self._height
+
 
 class Som(FeatureMap):
-
     def __init__(self, width=0, height=0, dimension=0, randomize=False,
                  threshold=0.5, learning_rate=0.05, max_iteration=5, gain=2):
 
@@ -91,7 +95,6 @@ class Som(FeatureMap):
         return float(self._iteration) / self._max_iteration_count
 
     def train_feature_vector(self, feature_vector):
-
         bmu_coord = np.array(self.get_bmu_coord(feature_vector))
         gain = self._gain * (1 - self.get_progress())
         squared_gain = gain * gain
@@ -127,4 +130,3 @@ class Som(FeatureMap):
     def train_feature_map(self, feature_map):
         for sample_unit in feature_map.map:
             self.train_feature_vector(sample_unit)
-
